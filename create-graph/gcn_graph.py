@@ -89,7 +89,7 @@ for table in tableList:
     for row in cursor:
         keyValue = row['pk']
         if keyValue > 0:
-            primaryKeyInfo = (row['cid'],row['name'])
+            primaryKeyInfo = (row['cid'],row['name'].lower())
             primaryKeyAttributes.append(primaryKeyInfo)
     print(primaryKeyAttributes)
     #query to retrieve all rows
