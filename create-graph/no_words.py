@@ -38,11 +38,12 @@ def isRelationalTable(fkList, pkList, column_count):
     for pk in tempPk:
         if pk not in tempFk:
             return False
-    
+
+
     return True
 
 # Change the connect address to whatever sqlite database you want to access in your local directory
-conn = sqlite3.connect("C:\\Users\\ozana\\Desktop\\Ders\\db\\spider\\database\\sakila_1\\sakila_1.sqlite")
+conn = sqlite3.connect("C:\\Users\\ozana\\Desktop\\Ders\\db\\spider\\database\\college_2\\college_2.sqlite")
 conn.row_factory = sqlite3.Row
 cursor = conn.cursor()
 
@@ -73,7 +74,6 @@ relations = input("Please enter a comma seperated list of tables: ")
 relations = relations.split(',')
 idx = 0
 rows = {}
-print(relations)
 # Create the nodes
 for table in tableList:
     # Name of the current table, extracted from the tuple
@@ -87,9 +87,9 @@ for table in tableList:
     for row in cursor:
         keyValue = row['pk']
         if keyValue > 0:
-            primaryKeyInfo = (row['cid'],row['name'])
+            primaryKeyInfo = (row['cid'],row['name'].lower())
             primaryKeyAttributes.append(primaryKeyInfo)
-    print(primaryKeyAttributes)
+
     #query to retrieve all rows
     query = 'SELECT * FROM {}'.format(tableName)
     #execute the query
@@ -106,7 +106,7 @@ for table in tableList:
     for row in cursor:
         column_count = len(row.keys())
         break
-
+    
     isTableRelational = isRelationalTable(foreignKeys[tableName], primaryKeyAttributes, column_count) #TODO
     if tableName == "offering_instructor":
         # Find the column with max relations
@@ -116,7 +116,6 @@ for table in tableList:
             max_relation_count = -1
             for row in cursor:
                 for key in row.keys():
-                    print(key)
                     max_relation_query = 'select count(*) as result from {} group by {} order by result desc limit 1'.format(tableName, key)
                     cursor.execute(max_relation_query)
                     for value in cursor:
@@ -131,7 +130,6 @@ for table in tableList:
         cursor.execute(count_query)
         for row in cursor:
             count_dict[row[max_relation_column]] = row['result']
-        print(count_dict)
     query = 'SELECT * FROM {}'.format(tableName)
     #execute the query
     cursor.execute(query)
@@ -144,7 +142,6 @@ for table in tableList:
             temp =  keyAttribute[1]
             primaryKeys[temp] = row[keyAttribute[0]]
 
-
         if isTableRelational == False:
             # Create an id for the node
             nodeId = createNodeId(tableName, primaryKeys)
@@ -155,16 +152,6 @@ for table in tableList:
             if nodeId not in nodeIds:
                 nodeIds[nodeId] = ""
                 graph.add_node(nodeId, node_id=nodeId, table_name=tableName, primary_keys=primaryKeys,type="doc")
-            """
-            nodes = []
-            for (p,d) in graph.nodes(data=True):
-                if d['node_id'] == nodeId:
-                    nodes.append(p)
-                    break
-            if len(nodes) == 0:
-                #Add node to the graph
-                graph.add_node(nodeId, node_id=nodeId, table_name=tableName, primary_keys=primaryKeys,type="doc")
-            """
 
             # Check if this table has foreign keys
             if len(foreignKeys[tableName]) != 0:
@@ -189,18 +176,6 @@ for table in tableList:
                             graph.add_edge(nodeId, fkNodeId, weight=1)
                         else:
                             graph.add_edge(nodeId,fkNodeId,weight=1)
-                        """
-                        nodes = []
-                        for (p,d) in graph.nodes(data=True):
-                            if d['node_id'] == fkNodeId:
-                                nodes.append(p)
-                                break
-                        if len(nodes) == 0:
-                            graph.add_node(fkNodeId, node_id=fkNodeId, table_name=entryValue, primary_keys=valueList,type="doc")
-                            graph.add_edge(nodeId, fkNodeId, weight=1)
-                        else:
-                            graph.add_edge(nodeId,nodes[0],weight=1)
-                        """
 
         else:
             if tableName == "offering_instructor":
@@ -223,15 +198,6 @@ for table in tableList:
                             if fk not in nodeIds:
                                 nodeIds[fk] = ""
                                 graph.add_node(fk, node_id=fk, table_name = fk.split('_')[0], primary_keys=info[fk], type="doc")
-                            """
-                            nodes = []
-                            for (p,d) in graph.nodes(data=True):
-                                if d['node_id'] == fk:
-                                    nodes.append(p)
-                                    break
-                            if len(nodes) == 0:
-                                graph.add_node(fk, node_id=fk, table_name = fk.split('_')[0], primary_keys=info[fk], type="doc")
-                            """
 
                         for fk1,fk2 in combinations(fkNodes, 2):
                             graph.add_edge(fk1, fk2,weight=1)
@@ -254,15 +220,6 @@ for table in tableList:
                         if fk not in nodeIds:
                                 nodeIds[fk] = ""
                                 graph.add_node(fk, node_id=fk, table_name = fk.split('_')[0], primary_keys=info[fk], type="doc")
-                        """
-                        nodes = []
-                        for (p,d) in graph.nodes(data=True):
-                            if d['node_id'] == fk:
-                                nodes.append(p)
-                                break
-                        if len(nodes) == 0:
-                            graph.add_node(fk, node_id=fk, table_name = fk.split('_')[0], primary_keys=info[fk], type="doc")
-                        """
 
                     for fk1,fk2 in combinations(fkNodes, 2):
                         graph.add_edge(fk1, fk2,weight=1)
